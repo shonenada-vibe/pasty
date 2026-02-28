@@ -5,6 +5,7 @@ struct PopupView: View {
     let onSelect: (ClipboardItem) -> Void
 
     @State private var searchText = ""
+    @State private var selectedItemID: UUID?
 
     private var filteredItems: [ClipboardItem] {
         if searchText.isEmpty {
@@ -27,15 +28,25 @@ struct PopupView: View {
                 }
                 .frame(maxHeight: .infinity)
             } else {
-                List(Array(filteredItems.enumerated()), id: \.element.id) { index, item in
-                    ClipboardItemRow(item: item, index: index + 1)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            onSelect(item)
-                        }
-                        .listRowInsets(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 4))
+                List(selection: $selectedItemID) {
+                    ForEach(Array(filteredItems.enumerated()), id: \.element.id) { index, item in
+                        ClipboardItemRow(item: item, index: index + 1)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                onSelect(item)
+                            }
+                            .listRowInsets(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 4))
+                            .tag(item.id)
+                    }
                 }
                 .listStyle(.plain)
+                .onKeyPress(.return) {
+                    if let id = selectedItemID, let item = filteredItems.first(where: { $0.id == id }) {
+                        onSelect(item)
+                        return .handled
+                    }
+                    return .ignored
+                }
             }
         }
         .frame(width: 360, height: 400)
