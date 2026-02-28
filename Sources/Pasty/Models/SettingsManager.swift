@@ -5,32 +5,34 @@ import Foundation
 final class SettingsManager: Sendable {
     static let shared = SettingsManager()
 
+    private let defaults: UserDefaults
+
     private static let maxHistorySizeKey = "maxHistorySize"
     private static let hotkeyEnabledKey = "hotkeyEnabled"
-    private static let defaultMaxHistorySize = 10
-    private static let defaultHotkeyEnabled = true
 
     var maxHistorySize: Int {
         get {
-            let value = UserDefaults.standard.integer(forKey: Self.maxHistorySizeKey)
-            return value == 0 ? Self.defaultMaxHistorySize : max(5, min(50, value))
+            let value = defaults.integer(forKey: Self.maxHistorySizeKey)
+            return value == 0 ? 10 : max(5, min(50, value))
         }
         set {
-            UserDefaults.standard.set(max(5, min(50, newValue)), forKey: Self.maxHistorySizeKey)
+            defaults.set(max(5, min(50, newValue)), forKey: Self.maxHistorySizeKey)
         }
     }
 
     var hotkeyEnabled: Bool {
         get {
-            if UserDefaults.standard.object(forKey: Self.hotkeyEnabledKey) == nil {
-                return Self.defaultHotkeyEnabled
+            if defaults.object(forKey: Self.hotkeyEnabledKey) == nil {
+                return true
             }
-            return UserDefaults.standard.bool(forKey: Self.hotkeyEnabledKey)
+            return defaults.bool(forKey: Self.hotkeyEnabledKey)
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: Self.hotkeyEnabledKey)
+            defaults.set(newValue, forKey: Self.hotkeyEnabledKey)
         }
     }
 
-    private init() {}
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
 }
