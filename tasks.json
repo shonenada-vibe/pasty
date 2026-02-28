@@ -7,7 +7,7 @@
       "title": "SPM Project Setup",
       "description": "Create Package.swift, directory structure, Info.plist, and a minimal compilable app entry point.",
       "dependencies": [],
-      "passes": false,
+      "passes": true,
       "steps": [
         "Create Package.swift with macOS 14 platform, Pasty executable target, and PastyTests test target",
         "Create directory structure: Sources/Pasty/, Sources/Pasty/Models/, Sources/Pasty/Managers/, Sources/Pasty/Views/, Tests/PastyTests/, Resources/",
