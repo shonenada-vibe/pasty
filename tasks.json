@@ -189,7 +189,7 @@
       "title": "Polish and Test",
       "description": "End-to-end testing, edge case handling, and UI polish.",
       "dependencies": ["app-integration"],
-      "passes": false,
+      "passes": true,
       "steps": [
         "Test full flow: copy text → appears in history → Cmd+Shift+V → select item → pastes correctly",
         "Test edge cases: empty clipboard, very long text, rapid successive copies",
