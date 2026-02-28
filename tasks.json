@@ -52,7 +52,7 @@
       "title": "Clipboard Manager",
       "description": "Implement ClipboardManager that polls the system clipboard and maintains an in-memory history.",
       "dependencies": ["clipboard-item-model", "settings-manager"],
-      "passes": false,
+      "passes": true,
       "steps": [
         "Create Sources/Pasty/Managers/ClipboardManager.swift",
         "Use @Observable macro and @MainActor",
