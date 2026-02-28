@@ -21,7 +21,7 @@
       "title": "ClipboardItem Model",
       "description": "Define the ClipboardItem struct that represents a single clipboard history entry.",
       "dependencies": ["project-setup"],
-      "passes": false,
+      "passes": true,
       "steps": [
         "Create Sources/Pasty/Models/ClipboardItem.swift",
         "Define ClipboardItem as a struct conforming to Identifiable, Equatable, Hashable, Sendable",
