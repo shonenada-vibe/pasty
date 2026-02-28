@@ -121,7 +121,7 @@
       "title": "Hotkey Manager (Carbon API)",
       "description": "Register and handle a global Cmd+Shift+V hotkey using the Carbon API.",
       "dependencies": ["settings-manager"],
-      "passes": false,
+      "passes": true,
       "steps": [
         "Create Sources/Pasty/Managers/HotkeyManager.swift",
         "Import Carbon.HIToolbox",
