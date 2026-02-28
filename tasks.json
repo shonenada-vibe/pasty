@@ -155,7 +155,7 @@
       "title": "Paste Action",
       "description": "Implement the paste action: write selected item to clipboard and simulate Cmd+V.",
       "dependencies": ["clipboard-manager", "popup-window"],
-      "passes": false,
+      "passes": true,
       "steps": [
         "Add a method to ClipboardManager: pasteItem(_ item: ClipboardItem)",
         "Implementation: write item.content to NSPasteboard.general, update lastChangeCount to avoid re-capturing it",
