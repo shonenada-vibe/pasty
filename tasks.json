@@ -86,7 +86,7 @@
       "title": "Popup View (SwiftUI)",
       "description": "Build the SwiftUI view that displays the clipboard history list.",
       "dependencies": ["clipboard-item-model"],
-      "passes": false,
+      "passes": true,
       "steps": [
         "Create Sources/Pasty/Views/ClipboardItemRow.swift — SwiftUI view for a single clipboard item",
         "Show: item preview text, timestamp (relative: '2m ago'), item index number (1-based)",
