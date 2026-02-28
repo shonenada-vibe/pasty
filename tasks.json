@@ -1,0 +1,205 @@
+{
+  "project": "Pasty",
+  "description": "macOS menu bar clipboard manager",
+  "tasks": [
+    {
+      "id": "project-setup",
+      "title": "SPM Project Setup",
+      "description": "Create Package.swift, directory structure, Info.plist, and a minimal compilable app entry point.",
+      "dependencies": [],
+      "passes": false,
+      "steps": [
+        "Create Package.swift with macOS 14 platform, Pasty executable target, and PastyTests test target",
+        "Create directory structure: Sources/Pasty/, Sources/Pasty/Models/, Sources/Pasty/Managers/, Sources/Pasty/Views/, Tests/PastyTests/, Resources/",
+        "Create Resources/Info.plist with LSUIElement=true and bundle identifier com.pasty.app",
+        "Create Sources/Pasty/PastyApp.swift with @main App struct that creates an empty WindowGroup (placeholder)",
+        "Verify: swift build compiles successfully"
+      ]
+    },
+    {
+      "id": "clipboard-item-model",
+      "title": "ClipboardItem Model",
+      "description": "Define the ClipboardItem struct that represents a single clipboard history entry.",
+      "dependencies": ["project-setup"],
+      "passes": false,
+      "steps": [
+        "Create Sources/Pasty/Models/ClipboardItem.swift",
+        "Define ClipboardItem as a struct conforming to Identifiable, Equatable, Hashable, Sendable",
+        "Properties: id (UUID), content (String), timestamp (Date), contentType (enum: plainText, richText, image — start with plainText only)",
+        "Add a computed property 'preview' that returns first 80 characters of content with ellipsis if truncated",
+        "Create Tests/PastyTests/ClipboardItemTests.swift with tests for creation, preview truncation, and equality",
+        "Verify: swift test passes"
+      ]
+    },
+    {
+      "id": "settings-manager",
+      "title": "Settings Manager",
+      "description": "Create SettingsManager that stores app preferences in UserDefaults.",
+      "dependencies": ["project-setup"],
+      "passes": false,
+      "steps": [
+        "Create Sources/Pasty/Models/SettingsManager.swift",
+        "Use @Observable macro and @MainActor",
+        "Properties: maxHistorySize (Int, default 10, range 5–50), hotkeyEnabled (Bool, default true)",
+        "Back each property with UserDefaults using computed getters/setters or @AppStorage",
+        "Add static let shared singleton",
+        "Create Tests/PastyTests/SettingsManagerTests.swift testing default values and persistence",
+        "Verify: swift test passes"
+      ]
+    },
+    {
+      "id": "clipboard-manager",
+      "title": "Clipboard Manager",
+      "description": "Implement ClipboardManager that polls the system clipboard and maintains an in-memory history.",
+      "dependencies": ["clipboard-item-model", "settings-manager"],
+      "passes": false,
+      "steps": [
+        "Create Sources/Pasty/Managers/ClipboardManager.swift",
+        "Use @Observable macro and @MainActor",
+        "Properties: history ([ClipboardItem]), lastChangeCount (Int, tracks NSPasteboard.changeCount)",
+        "Method startMonitoring(): start a Timer every 0.5s that checks NSPasteboard.general",
+        "Method stopMonitoring(): invalidate the timer",
+        "On clipboard change: create ClipboardItem, prepend to history, trim to maxHistorySize",
+        "Skip duplicates (don't add if content matches the most recent item)",
+        "Method clearHistory(): empties the history array",
+        "Create Tests/PastyTests/ClipboardManagerTests.swift testing add, dedup, max size, and clear",
+        "Verify: swift test passes"
+      ]
+    },
+    {
+      "id": "status-bar",
+      "title": "Status Bar Controller",
+      "description": "Create the menu bar icon and dropdown menu with Show History and Settings options.",
+      "dependencies": ["project-setup"],
+      "passes": false,
+      "steps": [
+        "Create Sources/Pasty/Managers/StatusBarController.swift",
+        "Use @MainActor class",
+        "Create NSStatusItem with systemSymbolName 'doc.on.clipboard' or 'list.clipboard'",
+        "Build NSMenu with items: 'Show Clipboard History' (Cmd+Shift+V), separator, 'Settings...', 'Quit Pasty'",
+        "Expose callbacks: onShowHistory, onShowSettings, onQuit (closures set by AppDelegate)",
+        "Verify: swift build compiles"
+      ]
+    },
+    {
+      "id": "popup-view",
+      "title": "Popup View (SwiftUI)",
+      "description": "Build the SwiftUI view that displays the clipboard history list.",
+      "dependencies": ["clipboard-item-model"],
+      "passes": false,
+      "steps": [
+        "Create Sources/Pasty/Views/ClipboardItemRow.swift — SwiftUI view for a single clipboard item",
+        "Show: item preview text, timestamp (relative: '2m ago'), item index number (1-based)",
+        "Add hover highlight effect",
+        "Create Sources/Pasty/Views/PopupView.swift — SwiftUI view with a List of ClipboardItemRow",
+        "Accept items: [ClipboardItem] and onSelect: (ClipboardItem) -> Void callback",
+        "Add a search/filter TextField at the top that filters items by content",
+        "Show 'No items' placeholder when history is empty",
+        "Verify: swift build compiles"
+      ]
+    },
+    {
+      "id": "popup-window",
+      "title": "Popup Window Controller",
+      "description": "Create the NSPanel-based window that hosts the PopupView and can show/hide near the cursor.",
+      "dependencies": ["popup-view"],
+      "passes": false,
+      "steps": [
+        "Create Sources/Pasty/Views/PopupWindowController.swift",
+        "Use @MainActor class",
+        "Create an NSPanel with styleMask [.nonactivatingPanel, .titled, .resizable, .fullSizeContentView]",
+        "Set panel.level = .floating, panel.isFloatingPanel = true",
+        "Method showPopup(items:onSelect:): host PopupView in NSHostingView, position panel near mouse cursor, order front",
+        "Method hidePopup(): orderOut the panel",
+        "Method toggle(items:onSelect:): show if hidden, hide if visible",
+        "Handle click-outside to dismiss (panel.hidesOnDeactivate or NSEvent monitor)",
+        "Verify: swift build compiles"
+      ]
+    },
+    {
+      "id": "hotkey-manager",
+      "title": "Hotkey Manager (Carbon API)",
+      "description": "Register and handle a global Cmd+Shift+V hotkey using the Carbon API.",
+      "dependencies": ["settings-manager"],
+      "passes": false,
+      "steps": [
+        "Create Sources/Pasty/Managers/HotkeyManager.swift",
+        "Import Carbon.HIToolbox",
+        "Use @MainActor class with a static shared instance",
+        "Method register(): call InstallEventHandler + RegisterEventHotKey for Cmd+Shift+V",
+        "Method unregister(): call UnregisterEventHotKey",
+        "Use signature 'PSTY' (0x50535459) and id 1",
+        "Store a callback closure: onHotkeyPressed: (() -> Void)?",
+        "Handle the Carbon event callback (C function pointer) — use a global/static reference to call back into Swift",
+        "Respect SettingsManager.hotkeyEnabled — only register when enabled",
+        "Verify: swift build compiles"
+      ]
+    },
+    {
+      "id": "settings-view",
+      "title": "Settings View (SwiftUI)",
+      "description": "Build the SwiftUI settings window with history size and hotkey toggle.",
+      "dependencies": ["settings-manager"],
+      "passes": false,
+      "steps": [
+        "Create Sources/Pasty/Views/SettingsView.swift",
+        "Bind to SettingsManager.shared",
+        "Section 'General': Stepper or Slider for maxHistorySize (5–50), Toggle for hotkeyEnabled",
+        "Section 'About': App name, version, brief description",
+        "Use Form layout with GroupBox or Section styling",
+        "Verify: swift build compiles"
+      ]
+    },
+    {
+      "id": "paste-action",
+      "title": "Paste Action",
+      "description": "Implement the paste action: write selected item to clipboard and simulate Cmd+V.",
+      "dependencies": ["clipboard-manager", "popup-window"],
+      "passes": false,
+      "steps": [
+        "Add a method to ClipboardManager: pasteItem(_ item: ClipboardItem)",
+        "Implementation: write item.content to NSPasteboard.general, update lastChangeCount to avoid re-capturing it",
+        "After writing to pasteboard, simulate Cmd+V using CGEvent (keyDown + keyUp for V key with .maskCommand)",
+        "Add a small delay (DispatchQueue.main.asyncAfter 0.05s) between writing pasteboard and simulating the key",
+        "Hide the popup window after pasting",
+        "Verify: swift build compiles"
+      ]
+    },
+    {
+      "id": "app-integration",
+      "title": "App Integration",
+      "description": "Wire all managers together in AppDelegate and connect the status bar to popup and settings.",
+      "dependencies": ["status-bar", "popup-window", "hotkey-manager", "settings-view", "paste-action"],
+      "passes": false,
+      "steps": [
+        "Create Sources/Pasty/AppDelegate.swift as NSApplicationDelegate",
+        "Instantiate: ClipboardManager, StatusBarController, HotkeyManager, PopupWindowController",
+        "Update PastyApp.swift: use @NSApplicationDelegateAdaptor to connect AppDelegate",
+        "In applicationDidFinishLaunching: start clipboard monitoring, register hotkey, set up status bar",
+        "Wire StatusBarController.onShowHistory → toggle popup with clipboard history",
+        "Wire StatusBarController.onShowSettings → open settings window (NSWindow with NSHostingView of SettingsView)",
+        "Wire StatusBarController.onQuit → NSApplication.shared.terminate",
+        "Wire HotkeyManager.onHotkeyPressed → toggle popup",
+        "Wire PopupView.onSelect → ClipboardManager.pasteItem → hide popup",
+        "Verify: swift build compiles, swift run Pasty launches and shows menu bar icon"
+      ]
+    },
+    {
+      "id": "polish-and-test",
+      "title": "Polish and Test",
+      "description": "End-to-end testing, edge case handling, and UI polish.",
+      "dependencies": ["app-integration"],
+      "passes": false,
+      "steps": [
+        "Test full flow: copy text → appears in history → Cmd+Shift+V → select item → pastes correctly",
+        "Test edge cases: empty clipboard, very long text, rapid successive copies",
+        "Test settings: change max history size → verify history is trimmed, toggle hotkey → verify register/unregister",
+        "Polish popup: proper sizing, smooth animations, keyboard navigation (arrow keys + Enter)",
+        "Ensure menu bar icon appears correctly and all menu items work",
+        "Verify no compiler warnings",
+        "Run swift test — all tests pass",
+        "Create PROGRESS/polish-and-test.md documenting the final state"
+      ]
+    }
+  ]
+}
