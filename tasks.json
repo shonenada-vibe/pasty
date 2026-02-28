@@ -103,7 +103,7 @@
       "title": "Popup Window Controller",
       "description": "Create the NSPanel-based window that hosts the PopupView and can show/hide near the cursor.",
       "dependencies": ["popup-view"],
-      "passes": false,
+      "passes": true,
       "steps": [
         "Create Sources/Pasty/Views/PopupWindowController.swift",
         "Use @MainActor class",
