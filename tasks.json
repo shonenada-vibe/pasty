@@ -170,7 +170,7 @@
       "title": "App Integration",
       "description": "Wire all managers together in AppDelegate and connect the status bar to popup and settings.",
       "dependencies": ["status-bar", "popup-window", "hotkey-manager", "settings-view", "paste-action"],
-      "passes": false,
+      "passes": true,
       "steps": [
         "Create Sources/Pasty/AppDelegate.swift as NSApplicationDelegate",
         "Instantiate: ClipboardManager, StatusBarController, HotkeyManager, PopupWindowController",
