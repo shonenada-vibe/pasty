@@ -140,7 +140,7 @@
       "title": "Settings View (SwiftUI)",
       "description": "Build the SwiftUI settings window with history size and hotkey toggle.",
       "dependencies": ["settings-manager"],
-      "passes": false,
+      "passes": true,
       "steps": [
         "Create Sources/Pasty/Views/SettingsView.swift",
         "Bind to SettingsManager.shared",
