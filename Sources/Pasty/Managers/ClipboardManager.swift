@@ -31,6 +31,27 @@ final class ClipboardManager {
         history.removeAll()
     }
 
+    func pasteItem(_ item: ClipboardItem) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(item.content, forType: .string)
+        lastChangeCount = pasteboard.changeCount
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            self.simulateCmdV()
+        }
+    }
+
+    private func simulateCmdV() {
+        let source = CGEventSource(stateID: .combinedSessionState)
+        let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: true)
+        keyDown?.flags = .maskCommand
+        keyDown?.post(tap: .cgSessionEventTap)
+        let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: false)
+        keyUp?.flags = .maskCommand
+        keyUp?.post(tap: .cgSessionEventTap)
+    }
+
     func addItem(content: String) {
         guard !content.isEmpty else { return }
         if let first = history.first, first.content == content {
