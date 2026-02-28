@@ -36,7 +36,7 @@
       "title": "Settings Manager",
       "description": "Create SettingsManager that stores app preferences in UserDefaults.",
       "dependencies": ["project-setup"],
-      "passes": false,
+      "passes": true,
       "steps": [
         "Create Sources/Pasty/Models/SettingsManager.swift",
         "Use @Observable macro and @MainActor",
