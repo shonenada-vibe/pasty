@@ -9,6 +9,8 @@ final class SettingsManager: Sendable {
 
     private static let maxHistorySizeKey = "maxHistorySize"
     private static let hotkeyEnabledKey = "hotkeyEnabled"
+    private static let hotkeyKeyCodeKey = "hotkeyKeyCode"
+    private static let hotkeyModifiersKey = "hotkeyModifiers"
 
     var maxHistorySize: Int {
         get {
@@ -29,6 +31,30 @@ final class SettingsManager: Sendable {
         }
         set {
             defaults.set(newValue, forKey: Self.hotkeyEnabledKey)
+        }
+    }
+
+    var hotkeyKeyCode: Int {
+        get {
+            if defaults.object(forKey: Self.hotkeyKeyCodeKey) == nil {
+                return 0x09 // kVK_ANSI_V
+            }
+            return defaults.integer(forKey: Self.hotkeyKeyCodeKey)
+        }
+        set {
+            defaults.set(newValue, forKey: Self.hotkeyKeyCodeKey)
+        }
+    }
+
+    var hotkeyModifiers: Int {
+        get {
+            if defaults.object(forKey: Self.hotkeyModifiersKey) == nil {
+                return 0x0900 // cmdKey | shiftKey
+            }
+            return defaults.integer(forKey: Self.hotkeyModifiersKey)
+        }
+        set {
+            defaults.set(newValue, forKey: Self.hotkeyModifiersKey)
         }
     }
 

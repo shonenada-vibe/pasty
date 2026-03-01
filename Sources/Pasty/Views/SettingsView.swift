@@ -9,8 +9,16 @@ struct SettingsView: View {
                 Stepper("Max History Size: \(settings.maxHistorySize)",
                         value: $settings.maxHistorySize,
                         in: 5...50)
+            }
 
-                Toggle("Global Hotkey (⌘⇧V)", isOn: $settings.hotkeyEnabled)
+            Section("Hotkey") {
+                Toggle("Enable Global Hotkey", isOn: $settings.hotkeyEnabled)
+
+                ShortcutRecorderView {
+                    HotkeyManager.shared.unregister()
+                    HotkeyManager.shared.register()
+                }
+                .disabled(!settings.hotkeyEnabled)
             }
 
             Section("About") {
@@ -22,6 +30,13 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 350, height: 250)
+        .frame(width: 450, height: 350)
+        .onChange(of: settings.hotkeyEnabled) {
+            if settings.hotkeyEnabled {
+                HotkeyManager.shared.register()
+            } else {
+                HotkeyManager.shared.unregister()
+            }
+        }
     }
 }

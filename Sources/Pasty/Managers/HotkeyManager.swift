@@ -51,9 +51,10 @@ final class HotkeyManager {
             id: 1
         )
 
+        let settings = SettingsManager.shared
         RegisterEventHotKey(
-            UInt32(kVK_ANSI_V),
-            UInt32(cmdKey | shiftKey),
+            UInt32(settings.hotkeyKeyCode),
+            UInt32(settings.hotkeyModifiers),
             hotkeyID,
             GetEventDispatcherTarget(),
             0,

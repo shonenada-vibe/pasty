@@ -47,7 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let settingsView = SettingsView()
         let hostingView = NSHostingView(rootView: settingsView)
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 350, height: 250),
+            contentRect: NSRect(x: 0, y: 0, width: 450, height: 350),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
