@@ -4,6 +4,8 @@
 <dict>
     <key>CFBundleIdentifier</key>
     <string>com.pasty.app</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundleName</key>
     <string>Pasty</string>
     <key>CFBundlePackageType</key>

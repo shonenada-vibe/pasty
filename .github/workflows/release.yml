@@ -39,6 +39,7 @@ jobs:
           mkdir -p "$APP_DIR/Resources"
 
           cp .build/release/Pasty "$APP_DIR/MacOS/Pasty"
+          cp Resources/AppIcon.icns "$APP_DIR/Resources/AppIcon.icns"
 
           VERSION="${{ steps.version.outputs.VERSION }}"
 
@@ -51,6 +52,8 @@ jobs:
               <string>com.pasty.app</string>
               <key>CFBundleExecutable</key>
               <string>Pasty</string>
+              <key>CFBundleIconFile</key>
+              <string>AppIcon</string>
               <key>CFBundleName</key>
               <string>Pasty</string>
               <key>CFBundlePackageType</key>
