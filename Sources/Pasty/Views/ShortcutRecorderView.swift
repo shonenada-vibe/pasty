@@ -1,32 +1,24 @@
 import SwiftUI
-import AppKit
 import Carbon.HIToolbox
 
 struct ShortcutRecorderView: View {
     @State private var settings = SettingsManager.shared
     @State private var isRecording = false
+    @State private var eventMonitor: Any?
     var onShortcutChanged: (() -> Void)?
 
     var body: some View {
         HStack {
             Text("Shortcut:")
-            Button(action: { isRecording.toggle() }) {
+            Button(action: { startRecording() }) {
                 Text(isRecording ? "Press shortcut…" : shortcutDisplayString)
                     .frame(minWidth: 120)
+                    .foregroundStyle(isRecording ? .secondary : .primary)
             }
-            .background {
-                if isRecording {
-                    ShortcutCaptureView(
-                        onCapture: { keyCode, modifiers in
-                            settings.hotkeyKeyCode = keyCode
-                            settings.hotkeyModifiers = modifiers
-                            isRecording = false
-                            onShortcutChanged?()
-                        },
-                        onCancel: { isRecording = false }
-                    )
-                    .frame(width: 0, height: 0)
-                }
+            if isRecording {
+                Button("Cancel") { stopRecording() }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
             }
         }
     }
@@ -36,52 +28,41 @@ struct ShortcutRecorderView: View {
         let key = keyName(for: settings.hotkeyKeyCode)
         return mods + key
     }
-}
 
-private struct ShortcutCaptureView: NSViewRepresentable {
-    let onCapture: (Int, Int) -> Void
-    let onCancel: () -> Void
+    private func startRecording() {
+        guard !isRecording else { return }
+        isRecording = true
+        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.keyCode == 53 { // Escape
+                stopRecording()
+                return nil
+            }
 
-    func makeNSView(context: Context) -> ShortcutCaptureNSView {
-        let view = ShortcutCaptureNSView()
-        view.onCapture = onCapture
-        view.onCancel = onCancel
-        DispatchQueue.main.async {
-            view.window?.makeFirstResponder(view)
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            guard flags.contains(.command) || flags.contains(.control) || flags.contains(.option) else {
+                return nil
+            }
+
+            var carbonMods = 0
+            if flags.contains(.command) { carbonMods |= cmdKey }
+            if flags.contains(.shift) { carbonMods |= shiftKey }
+            if flags.contains(.option) { carbonMods |= optionKey }
+            if flags.contains(.control) { carbonMods |= controlKey }
+
+            settings.hotkeyKeyCode = Int(event.keyCode)
+            settings.hotkeyModifiers = carbonMods
+            stopRecording()
+            onShortcutChanged?()
+            return nil
         }
-        return view
     }
 
-    func updateNSView(_ nsView: ShortcutCaptureNSView, context: Context) {
-        nsView.onCapture = onCapture
-        nsView.onCancel = onCancel
-    }
-}
-
-final class ShortcutCaptureNSView: NSView {
-    var onCapture: ((Int, Int) -> Void)?
-    var onCancel: (() -> Void)?
-
-    override var acceptsFirstResponder: Bool { true }
-
-    override func keyDown(with event: NSEvent) {
-        if event.keyCode == 53 { // Escape
-            onCancel?()
-            return
+    private func stopRecording() {
+        isRecording = false
+        if let monitor = eventMonitor {
+            NSEvent.removeMonitor(monitor)
+            eventMonitor = nil
         }
-
-        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-        guard flags.contains(.command) || flags.contains(.control) || flags.contains(.option) else {
-            return
-        }
-
-        var carbonMods = 0
-        if flags.contains(.command) { carbonMods |= cmdKey }
-        if flags.contains(.shift) { carbonMods |= shiftKey }
-        if flags.contains(.option) { carbonMods |= optionKey }
-        if flags.contains(.control) { carbonMods |= controlKey }
-
-        onCapture?(Int(event.keyCode), carbonMods)
     }
 }
 
