@@ -20,6 +20,15 @@ jobs:
         id: version
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
+      - name: Check signing secrets
+        id: signing
+        run: |
+          if [ -n "${{ secrets.APPLE_CERTIFICATE_BASE64 }}" ] && [ -n "${{ secrets.APPLE_TEAM_ID }}" ]; then
+            echo "ENABLED=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ENABLED=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build release binary
         run: swift build -c release
 
@@ -59,6 +68,7 @@ jobs:
           EOF
 
       - name: Import code signing certificate
+        if: steps.signing.outputs.ENABLED == 'true'
         env:
           APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -78,7 +88,8 @@ jobs:
             -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
 
-      - name: Code sign
+      - name: Code sign with Developer ID
+        if: steps.signing.outputs.ENABLED == 'true'
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
@@ -86,11 +97,16 @@ jobs:
             --sign "Developer ID Application: ($APPLE_TEAM_ID)" \
             Pasty.app
 
+      - name: Ad-hoc code sign
+        if: steps.signing.outputs.ENABLED != 'true'
+        run: codesign --force --deep --sign - Pasty.app
+
       - name: Create zip archive
         run: |
           ditto -c -k --sequesterRsrc --keepParent Pasty.app "Pasty-${{ steps.version.outputs.VERSION }}.zip"
 
       - name: Notarize
+        if: steps.signing.outputs.ENABLED == 'true'
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
@@ -103,15 +119,17 @@ jobs:
             --wait
 
       - name: Staple notarization
+        if: steps.signing.outputs.ENABLED == 'true'
         run: xcrun stapler staple Pasty.app
 
       - name: Re-create zip with stapled ticket
+        if: steps.signing.outputs.ENABLED == 'true'
         run: |
           rm "Pasty-${{ steps.version.outputs.VERSION }}.zip"
           ditto -c -k --sequesterRsrc --keepParent Pasty.app "Pasty-${{ steps.version.outputs.VERSION }}.zip"
 
       - name: Clean up keychain
-        if: always()
+        if: always() && steps.signing.outputs.ENABLED == 'true'
         run: security delete-keychain "$RUNNER_TEMP/signing.keychain-db" || true
 
       - name: Create GitHub Release
