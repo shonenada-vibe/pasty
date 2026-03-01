@@ -58,6 +58,9 @@ jobs:
           </plist>
           EOF
 
+      - name: Ad-hoc code sign
+        run: codesign --force --deep --sign - Pasty.app
+
       - name: Create zip archive
         run: |
           ditto -c -k --sequesterRsrc --keepParent Pasty.app "Pasty-${{ steps.version.outputs.VERSION }}.zip"

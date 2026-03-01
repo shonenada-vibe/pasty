@@ -33,6 +33,10 @@ cask "pasty" do
 
   app "Pasty.app"
 
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-cr", "#{appdir}/Pasty.app"]
+  end
+
   zap trash: [
     "~/Library/Preferences/com.pasty.app.plist",
   ]
