@@ -27,6 +27,7 @@ final class PopupWindowController {
         )
         panel.level = .floating
         panel.isFloatingPanel = true
+        panel.becomesKeyOnlyIfNeeded = false
         panel.hidesOnDeactivate = false
         panel.titleVisibility = .hidden
         panel.titlebarAppearsTransparent = true
@@ -34,7 +35,8 @@ final class PopupWindowController {
         panel.contentView = hostingView
 
         positionNearMouse(panel)
-        panel.orderFrontRegardless()
+        panel.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
 
         self.panel = panel
 
