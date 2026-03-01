@@ -11,10 +11,16 @@ final class PopupWindowController {
             hidePopup()
         }
 
-        let popupView = PopupView(items: items, onSelect: { [weak self] item in
-            self?.hidePopup()
-            onSelect(item)
-        })
+        let popupView = PopupView(
+            items: items,
+            onSelect: { [weak self] item in
+                self?.hidePopup()
+                onSelect(item)
+            },
+            onClose: { [weak self] in
+                self?.hidePopup()
+            }
+        )
 
         let hostingView = NSHostingView(rootView: popupView)
         let contentRect = NSRect(x: 0, y: 0, width: 360, height: 400)

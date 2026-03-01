@@ -3,6 +3,7 @@ import SwiftUI
 struct PopupView: View {
     let items: [ClipboardItem]
     let onSelect: (ClipboardItem) -> Void
+    let onClose: () -> Void
 
     @State private var searchText = ""
     @State private var selectedItemID: UUID?
@@ -16,9 +17,17 @@ struct PopupView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            TextField("Filter...", text: $searchText)
-                .textFieldStyle(.roundedBorder)
-                .padding(8)
+            HStack {
+                TextField("Filter...", text: $searchText)
+                    .textFieldStyle(.roundedBorder)
+
+                Button(action: onClose) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(8)
 
             if filteredItems.isEmpty {
                 ContentUnavailableView {
@@ -50,5 +59,9 @@ struct PopupView: View {
             }
         }
         .frame(width: 360, height: 400)
+        .onKeyPress(.escape) {
+            onClose()
+            return .handled
+        }
     }
 }
