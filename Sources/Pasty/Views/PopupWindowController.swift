@@ -1,6 +1,22 @@
 import AppKit
 import SwiftUI
 
+private class PopupPanel: NSPanel {
+    var onEscape: (() -> Void)?
+
+    override func cancelOperation(_ sender: Any?) {
+        onEscape?()
+    }
+
+    override func keyDown(with event: NSEvent) {
+        if event.keyCode == 53 { // Escape
+            onEscape?()
+        } else {
+            super.keyDown(with: event)
+        }
+    }
+}
+
 @MainActor
 final class PopupWindowController {
     private var panel: NSPanel?
@@ -16,18 +32,15 @@ final class PopupWindowController {
             onSelect: { [weak self] item in
                 self?.hidePopup()
                 onSelect(item)
-            },
-            onClose: { [weak self] in
-                self?.hidePopup()
             }
         )
 
         let hostingView = NSHostingView(rootView: popupView)
         let contentRect = NSRect(x: 0, y: 0, width: 360, height: 400)
 
-        let panel = NSPanel(
+        let panel = PopupPanel(
             contentRect: contentRect,
-            styleMask: [.nonactivatingPanel, .titled, .resizable, .fullSizeContentView],
+            styleMask: [.nonactivatingPanel, .titled, .closable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -39,6 +52,9 @@ final class PopupWindowController {
         panel.titlebarAppearsTransparent = true
         panel.isMovableByWindowBackground = true
         panel.contentView = hostingView
+        panel.onEscape = { [weak self] in
+            self?.hidePopup()
+        }
 
         positionNearMouse(panel)
         panel.makeKeyAndOrderFront(nil)
