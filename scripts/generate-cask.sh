@@ -12,7 +12,6 @@ VERSION="${TAG#v}"
 REPO="shonenada-vibe/pasty"
 URL="https://github.com/${REPO}/releases/download/${TAG}/Pasty-${VERSION}.zip"
 
-echo "Downloading ${URL} to compute sha256..." >&2
 SHA256=$(curl -sL "$URL" | shasum -a 256 | awk '{print $1}')
 
 if [ -z "$SHA256" ] || [ "$SHA256" = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" ]; then
